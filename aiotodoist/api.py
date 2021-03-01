@@ -3,18 +3,18 @@ from asyncio import iscoroutine, ensure_future
 from aiohttp import ClientSession
 from todoist.api import TodoistAPI, json_dumps, SyncError
 
-from managers import (AsyncUserManager,
-                      AsyncFiltersManager,
-                      AsyncItemsManager,
-                      AsyncLabelsManager,
-                      AsyncNotesManager,
-                      AsyncProjectsManager,
-                      AsyncProjectNotesManager,
-                      AsyncRemindersManager,
-                      AsyncSectionsManager,
-                      AsyncItemsArchiveManagerMaker,
-                      AsyncSectionsArchiveManagerMaker,
-                      )
+from .managers import (AsyncUserManager,
+                       AsyncFiltersManager,
+                       AsyncItemsManager,
+                       AsyncLabelsManager,
+                       AsyncNotesManager,
+                       AsyncProjectsManager,
+                       AsyncProjectNotesManager,
+                       AsyncRemindersManager,
+                       AsyncSectionsManager,
+                       AsyncItemsArchiveManagerMaker,
+                       AsyncSectionsArchiveManagerMaker,
+                       )
 
 
 class AsyncTodoistAPI(TodoistAPI):
