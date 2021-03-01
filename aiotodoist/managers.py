@@ -264,7 +264,7 @@ class _AsyncArchiveManager(ArchiveManager):
         resp.raise_for_status()
         return resp.json()
 
-    async def _next_page_async(cursor):
+    async def _next_page_async(self, cursor):
         resp = await self.api.session.get(
             self._next_url(),
             params=self._next_query_params(cursor),
