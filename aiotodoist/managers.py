@@ -327,7 +327,9 @@ class AsyncItemsArchiveManager(_AsyncArchiveManager):
         return rv
 
     def items(self):
-        if iscoroutine(self.next_page(None)):
+        data = self.next_page(None)
+        if iscoroutine(data):
+            data.close()
             return self.__aiter__()
         else:
             return self._iterate()
