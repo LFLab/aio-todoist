@@ -1,4 +1,4 @@
-from asyncio import iscoroutine, ensure_future
+from asyncio import iscoroutine, isfuture, ensure_future
 
 from aiohttp import ClientSession
 from todoist.api import TodoistAPI, json_dumps, SyncError
@@ -118,12 +118,21 @@ class AsyncTodoistAPI(TodoistAPI):
         return response
 
     def commit(self, raise_on_error=True):
-        def _callback(fut=None, ret=None):
+        async def _helper(fut):
             try:
-                ret = ret or fut.result()
+                ret = await fut
             except Exception as e:
                 self.queue[:] = queue + self.queue[:]
                 raise e
+            _callback(ret)
+            return ret
+
+        def _check_cancel(dest_fut):
+            if dest_fut.cancelled():
+                src_fut.cancel()
+                self.queue[:] = queue + self.queue[:]
+
+        def _callback(ret):
             if raise_on_error and "sync_status" in ret:
                 for k, v in ret["sync_status"].items():
                     if v != "ok":
@@ -133,10 +142,11 @@ class AsyncTodoistAPI(TodoistAPI):
             queue = self.queue[:]
             ret = self.sync(commands=queue)
             self.queue[:] = []
-            if iscoroutine(ret):
-                ret = ensure_future(ret)
-                ret.add_done_callback(_callback)
+            if isfuture(ret):
+                src_fut = ret
+                ret = ensure_future(_helper(src_fut))
+                ret.add_done_callback(_check_cancel)
             else:
-                _callback(ret=ret)
+                _callback(ret)
 
             return ret
