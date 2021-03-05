@@ -93,7 +93,10 @@ class AsyncTodoistAPI(TodoistAPI):
 
     def sync(self, commands=None):
         def _callback(fut=None, response=None):
-            response = response or fut.result()
+            try:
+                response = response or fut.result()
+            except Exception:
+                response = dict()
             if "temp_id_mapping" in response:
                 for temp_id, new_id in response["temp_id_mapping"].items():
                     self.temp_ids[temp_id] = new_id
