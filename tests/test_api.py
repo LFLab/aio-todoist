@@ -147,8 +147,7 @@ class TestAsyncTodoistAPI(AioHTTPTestCase):
             self.assertEqual([], self.api.queue)
             self.assertEqual(resp, m_sync.return_value)
 
-    @unittest_run_loop
-    async def test_commit_when_connection_fail(self):
+    def test_commit_when_sync_fail(self):
         commands = ["a", "b", "c"]
         self.api.queue.extend(commands)
 
@@ -158,22 +157,32 @@ class TestAsyncTodoistAPI(AioHTTPTestCase):
             self.api.commit()
             self.assertEqual(self.api.queue, commands)
 
-        # Future scenario 1
+    @unittest_run_loop
+    async def test_commit_when_sync_future_fail(self):
+        commands = ["a", "b", "c"]
+        self.api.queue.extend(commands)
+
         fut = self.api.commit()
         fut.cancel()
 
         self.assertEqual(self.api.queue, [])
         with self.assertRaises(CancelledError):
             await fut
+            del fut
         self.assertEqual(self.api.queue, commands)
 
-        # Future scenario 2: commit without await
+    @unittest_run_loop
+    async def test_commit_when_sync_future_silence_fail(self):
+        commands = ["a", "b", "c"]
+        self.api.queue.extend(commands)
+
         fut2 = self.api.commit()
         fut2.cancel()
 
         self.assertEqual(self.api.queue, [])
         await sleep(0.1)  # let done_callback spawn
         self.assertEqual(self.api.queue, commands)
+
         with self.assertRaises(CancelledError):
             fut2.result()
 
